@@ -1,15 +1,13 @@
 package com.drapps.selectionalertdialog;
 
-import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.res.ColorStateList;
-import android.content.res.TypedArray;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
@@ -18,17 +16,13 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.drapps.selectionalertdialog.R;
-import com.drapps.selectionalertdialog.SingleSelectionAdapter;
-import com.drapps.selectionalertdialog.SingleSelectionListener;
-
-import java.util.ArrayList;
-
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.ViewCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.ArrayList;
 
 public class SingleSelectionDialog extends AppCompatActivity {
 
@@ -42,6 +36,7 @@ public class SingleSelectionDialog extends AppCompatActivity {
     private String currentField = "", currentValue = "", currentPosition = "", tag = "", hintText = "Search here";
     private int headerColor, textColor;
     SingleSelectionListener singleSelectionListener;
+    private boolean enterToAddSearch = false;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -62,6 +57,7 @@ public class SingleSelectionDialog extends AppCompatActivity {
         headerColor = builder.headerColor;
         textColor = builder.textColor;
         singleSelectionListener = builder.singleSelectionListener;
+        enterToAddSearch = builder.enterToAddSearch;
         Log.d("TAG--", headerTitle);
     }
 
@@ -82,6 +78,35 @@ public class SingleSelectionDialog extends AppCompatActivity {
 
             if (isSearchEnabled) {
                 etSearch.setVisibility(View.VISIBLE);
+
+                if (enterToAddSearch) {
+                    etSearch.setOnKeyListener(new View.OnKeyListener() {
+                        @Override
+                        public boolean onKey(View view, int keyCode, KeyEvent event) {
+                            if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
+                                if (etSearch.getText() != null) {
+                                    final String searchedText = etSearch.getText().toString();
+                                    if (searchedText.isEmpty()) {
+                                        dialog.dismiss();
+
+                                        currentValue = searchedText;
+                                        currentField = searchedText;
+                                        currentPosition = "-1";
+
+                                        if (singleSelectionListener != null) {
+                                            singleSelectionListener.onDialogItemSelected(currentValue, Integer.parseInt(currentPosition), tag);
+                                        }
+                                    }
+                                }
+
+                                return true;
+                            }
+
+                            return false;
+                        }
+                    });
+                }
+
             } else {
                 etSearch.setVisibility(View.GONE);
             }
@@ -250,6 +275,11 @@ public class SingleSelectionDialog extends AppCompatActivity {
         SingleSelectionListener singleSelectionListener;
         int style;
 
+        /**
+         * If true, allows user to use the text in the search as a selected item.
+         */
+        private boolean enterToAddSearch;
+
         public Builder(Context ctx, String tag) {
             this.context = ctx;
             this.tag = tag;
@@ -293,6 +323,11 @@ public class SingleSelectionDialog extends AppCompatActivity {
 
         public Builder setSelectedField(String selectedField) {
             currentField = selectedField;
+            return this;
+        }
+
+        public Builder setEnterToAddSearch(boolean value) {
+            enterToAddSearch = value;
             return this;
         }
 
