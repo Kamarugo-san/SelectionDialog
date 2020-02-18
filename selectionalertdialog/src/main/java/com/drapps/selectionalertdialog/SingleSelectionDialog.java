@@ -86,7 +86,7 @@ public class SingleSelectionDialog extends AppCompatActivity {
                             if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
                                 if (etSearch.getText() != null) {
                                     final String searchedText = etSearch.getText().toString();
-                                    if (searchedText.isEmpty()) {
+                                    if (!searchedText.isEmpty()) {
                                         dialog.dismiss();
 
                                         currentValue = searchedText;
