@@ -26,6 +26,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 
 public class SingleSelectionDialog extends AppCompatActivity {
+    /**
+     * When {@link #returnToAddSearch} is true and the user presses return, this is the index that
+     * will be sent in {@link #singleSelectionListener}'s onDialogItemSelected.
+     * Use this to know whether the user has pressed return to add the text as selected item.
+     */
+    public static int RETURN_TO_ADD_SEARCH_ITEM_INDEX = -1;
 
     Dialog dialog;
     private Context context;
@@ -82,9 +88,11 @@ public class SingleSelectionDialog extends AppCompatActivity {
 
             if (isSearchEnabled) {
                 etSearch.setVisibility(View.VISIBLE);
-                tvMessage.setText(returnToAddSearchText);
 
+                // Return to add search bar text as selected item
                 if (returnToAddSearch) {
+                    tvMessage.setText(returnToAddSearchText);
+
                     etSearch.setOnKeyListener(new View.OnKeyListener() {
                         @Override
                         public boolean onKey(View view, int keyCode, KeyEvent event) {
@@ -96,10 +104,10 @@ public class SingleSelectionDialog extends AppCompatActivity {
 
                                         currentValue = searchedText;
                                         currentField = searchedText;
-                                        currentPosition = "-1";
+                                        currentPosition = String.valueOf(RETURN_TO_ADD_SEARCH_ITEM_INDEX);
 
                                         if (singleSelectionListener != null) {
-                                            singleSelectionListener.onDialogItemSelected(currentValue, Integer.parseInt(currentPosition), tag);
+                                            singleSelectionListener.onDialogItemSelected(currentValue, RETURN_TO_ADD_SEARCH_ITEM_INDEX, tag);
                                         }
                                     }
                                 }
@@ -200,7 +208,6 @@ public class SingleSelectionDialog extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     private void getSearch(String search, RecyclerView recyclerView, AppCompatTextView tvMessage) {
@@ -264,12 +271,11 @@ public class SingleSelectionDialog extends AppCompatActivity {
                 }
             }
         }
+
         return "";
     }
 
     public static class Builder {
-        //required
-
         //optional
         private Context context;
         private ArrayList<String> list = new ArrayList<>();
