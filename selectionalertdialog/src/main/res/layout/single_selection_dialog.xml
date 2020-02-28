@@ -61,7 +61,8 @@
         android:layout_margin="16dp"
         android:gravity="center_horizontal"
         android:textAlignment="center"
-        android:textSize="20sp" />
+        android:textSize="20sp"
+        android:visibility="gone" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_single_selection"
