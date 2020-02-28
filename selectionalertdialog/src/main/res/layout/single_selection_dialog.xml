@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:minHeight="150dp">
@@ -16,7 +17,9 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:layout_marginStart="10dp"
             android:layout_marginLeft="10dp"
+            android:layout_marginEnd="20dp"
             android:layout_marginRight="20dp"
             android:layout_weight="1"
             android:ellipsize="end"
@@ -31,6 +34,7 @@
             android:layout_width="56dp"
             android:layout_height="56dp"
             android:layout_gravity="center_vertical"
+            android:layout_marginEnd="10dp"
             android:layout_marginRight="10dp"
             android:padding="15dp"
             android:src="@drawable/ic_cancel_white" />
@@ -42,13 +46,28 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/linear_single_dialog"
-        android:layout_marginLeft="10dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginRight="16dp"
         android:singleLine="true" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/tv_list_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/et_search_single_selection"
+        android:layout_margin="16dp"
+        android:gravity="center_horizontal"
+        android:textAlignment="center"
+        android:textSize="20sp" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_single_selection"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/et_search_single_selection"
-        android:layout_marginTop="10dp" />
+        android:layout_marginTop="10dp"
+        tools:listitem="@layout/layout_single_selection" />
 </RelativeLayout>

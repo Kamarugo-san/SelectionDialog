@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatTextView;
 import androidx.core.view.ViewCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -36,7 +37,8 @@ public class SingleSelectionDialog extends AppCompatActivity {
     private String currentField = "", currentValue = "", currentPosition = "", tag = "", hintText = "Search here";
     private int headerColor, textColor;
     SingleSelectionListener singleSelectionListener;
-    private boolean enterToAddSearch = false;
+    private boolean returnToAddSearch = false;
+    private String returnToAddSearchText = "";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -57,7 +59,8 @@ public class SingleSelectionDialog extends AppCompatActivity {
         headerColor = builder.headerColor;
         textColor = builder.textColor;
         singleSelectionListener = builder.singleSelectionListener;
-        enterToAddSearch = builder.enterToAddSearch;
+        returnToAddSearch = builder.returnToAddSearch;
+        returnToAddSearchText = builder.returnToAddSearchText;
         Log.d("TAG--", headerTitle);
     }
 
@@ -75,11 +78,13 @@ public class SingleSelectionDialog extends AppCompatActivity {
             LinearLayout header = convertView.findViewById(R.id.linear_single_dialog);
             final EditText etSearch = convertView.findViewById(R.id.et_search_single_selection);
             tvTitle.setText(headerTitle);
+            final AppCompatTextView tvMessage = convertView.findViewById(R.id.tv_list_message);
 
             if (isSearchEnabled) {
                 etSearch.setVisibility(View.VISIBLE);
+                tvMessage.setText(returnToAddSearchText);
 
-                if (enterToAddSearch) {
+                if (returnToAddSearch) {
                     etSearch.setOnKeyListener(new View.OnKeyListener() {
                         @Override
                         public boolean onKey(View view, int keyCode, KeyEvent event) {
@@ -106,10 +111,10 @@ public class SingleSelectionDialog extends AppCompatActivity {
                         }
                     });
                 }
-
             } else {
                 etSearch.setVisibility(View.GONE);
             }
+
             if (headerColor != 0) {
                 try {
                     header.setBackgroundColor(headerColor);
@@ -123,6 +128,7 @@ public class SingleSelectionDialog extends AppCompatActivity {
             if (hintText != null && !hintText.equals("")) {
                 etSearch.setHint(hintText);
             }
+
             imgCancel.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -174,14 +180,12 @@ public class SingleSelectionDialog extends AppCompatActivity {
 
 
                     } else {
-                        getSearch(etSearch.getText().toString(), recyclerView);
+                        getSearch(etSearch.getText().toString(), recyclerView, tvMessage);
                     }
-
                 }
 
                 @Override
                 public void afterTextChanged(Editable s) {
-
                 }
             });
 
@@ -199,22 +203,24 @@ public class SingleSelectionDialog extends AppCompatActivity {
 
     }
 
-    private void getSearch(String search, RecyclerView recyclerView) {
+    private void getSearch(String search, RecyclerView recyclerView, AppCompatTextView tvMessage) {
         ArrayList<String> temp_list = new ArrayList<>();
         if (list != null && list.size() > 0) {
             for (int i = 0; i < list.size(); i++) {
                 if (list.get(i).toLowerCase().contains(search.toLowerCase())) {
                     temp_list.add(list.get(i));
-
                 }
             }
         } else {
             if (singleSelectionListener != null) {
-
-
                 singleSelectionListener.onDialogError("List is empty or null", tag);
-
             }
+        }
+
+        if (temp_list.size() == 0) {
+            tvMessage.setVisibility(View.VISIBLE);
+        } else {
+            tvMessage.setVisibility(View.GONE);
         }
 
         temp_data_list = new ArrayList<>();
@@ -223,8 +229,6 @@ public class SingleSelectionDialog extends AppCompatActivity {
 
         dialogAdapter.notifyDataSetChanged();
         recyclerView.setAdapter(dialogAdapter);
-
-
     }
 
     public String getCurrentField(String field) {
@@ -236,6 +240,7 @@ public class SingleSelectionDialog extends AppCompatActivity {
                 }
             }
         }
+
         return "";
     }
 
@@ -276,14 +281,20 @@ public class SingleSelectionDialog extends AppCompatActivity {
         int style;
 
         /**
-         * If true, allows user to use the text in the search as a selected item.
+         * If true, allows user to use the text in the search bar as a selected item by presssing
+         * return on their keyboard.
          */
-        private boolean enterToAddSearch;
+        private boolean returnToAddSearch;
+
+        /**
+         * Text to be shown as guide to the user when pressing return to add the text in the search
+         * bar as a selected item.
+         */
+        private String returnToAddSearchText = "Press return to use your search";
 
         public Builder(Context ctx, String tag) {
             this.context = ctx;
             this.tag = tag;
-
         }
 
         public Builder setContent(ArrayList<String> contentProvide) {
@@ -326,8 +337,13 @@ public class SingleSelectionDialog extends AppCompatActivity {
             return this;
         }
 
-        public Builder setEnterToAddSearch(boolean value) {
-            enterToAddSearch = value;
+        public Builder setReturnToAddSearch(boolean value) {
+            returnToAddSearch = value;
+            return this;
+        }
+
+        public Builder setReturnToAddSearchText(String value) {
+            returnToAddSearchText = value;
             return this;
         }
 
