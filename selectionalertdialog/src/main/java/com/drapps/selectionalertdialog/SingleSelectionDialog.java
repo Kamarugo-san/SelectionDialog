@@ -1,15 +1,13 @@
 package com.drapps.selectionalertdialog;
 
-import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.res.ColorStateList;
-import android.content.res.TypedArray;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
@@ -18,17 +16,14 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.drapps.selectionalertdialog.R;
-import com.drapps.selectionalertdialog.SingleSelectionAdapter;
-import com.drapps.selectionalertdialog.SingleSelectionListener;
-
-import java.util.ArrayList;
-
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatTextView;
 import androidx.core.view.ViewCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.ArrayList;
 
 public class SingleSelectionDialog extends AppCompatActivity {
 
@@ -42,6 +37,8 @@ public class SingleSelectionDialog extends AppCompatActivity {
     private String currentField = "", currentValue = "", currentPosition = "", tag = "", hintText = "Search here";
     private int headerColor, textColor;
     SingleSelectionListener singleSelectionListener;
+    private boolean returnToAddSearch = false;
+    private String returnToAddSearchText = "";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -62,6 +59,8 @@ public class SingleSelectionDialog extends AppCompatActivity {
         headerColor = builder.headerColor;
         textColor = builder.textColor;
         singleSelectionListener = builder.singleSelectionListener;
+        returnToAddSearch = builder.returnToAddSearch;
+        returnToAddSearchText = builder.returnToAddSearchText;
         Log.d("TAG--", headerTitle);
     }
 
@@ -79,12 +78,43 @@ public class SingleSelectionDialog extends AppCompatActivity {
             LinearLayout header = convertView.findViewById(R.id.linear_single_dialog);
             final EditText etSearch = convertView.findViewById(R.id.et_search_single_selection);
             tvTitle.setText(headerTitle);
+            final AppCompatTextView tvMessage = convertView.findViewById(R.id.tv_list_message);
 
             if (isSearchEnabled) {
                 etSearch.setVisibility(View.VISIBLE);
+                tvMessage.setText(returnToAddSearchText);
+
+                if (returnToAddSearch) {
+                    etSearch.setOnKeyListener(new View.OnKeyListener() {
+                        @Override
+                        public boolean onKey(View view, int keyCode, KeyEvent event) {
+                            if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
+                                if (etSearch.getText() != null) {
+                                    final String searchedText = etSearch.getText().toString();
+                                    if (!searchedText.isEmpty()) {
+                                        dialog.dismiss();
+
+                                        currentValue = searchedText;
+                                        currentField = searchedText;
+                                        currentPosition = "-1";
+
+                                        if (singleSelectionListener != null) {
+                                            singleSelectionListener.onDialogItemSelected(currentValue, Integer.parseInt(currentPosition), tag);
+                                        }
+                                    }
+                                }
+
+                                return true;
+                            }
+
+                            return false;
+                        }
+                    });
+                }
             } else {
                 etSearch.setVisibility(View.GONE);
             }
+
             if (headerColor != 0) {
                 try {
                     header.setBackgroundColor(headerColor);
@@ -98,6 +128,7 @@ public class SingleSelectionDialog extends AppCompatActivity {
             if (hintText != null && !hintText.equals("")) {
                 etSearch.setHint(hintText);
             }
+
             imgCancel.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -149,14 +180,12 @@ public class SingleSelectionDialog extends AppCompatActivity {
 
 
                     } else {
-                        getSearch(etSearch.getText().toString(), recyclerView);
+                        getSearch(etSearch.getText().toString(), recyclerView, tvMessage);
                     }
-
                 }
 
                 @Override
                 public void afterTextChanged(Editable s) {
-
                 }
             });
 
@@ -174,22 +203,24 @@ public class SingleSelectionDialog extends AppCompatActivity {
 
     }
 
-    private void getSearch(String search, RecyclerView recyclerView) {
+    private void getSearch(String search, RecyclerView recyclerView, AppCompatTextView tvMessage) {
         ArrayList<String> temp_list = new ArrayList<>();
         if (list != null && list.size() > 0) {
             for (int i = 0; i < list.size(); i++) {
                 if (list.get(i).toLowerCase().contains(search.toLowerCase())) {
                     temp_list.add(list.get(i));
-
                 }
             }
         } else {
             if (singleSelectionListener != null) {
-
-
                 singleSelectionListener.onDialogError("List is empty or null", tag);
-
             }
+        }
+
+        if (temp_list.size() == 0) {
+            tvMessage.setVisibility(View.VISIBLE);
+        } else {
+            tvMessage.setVisibility(View.GONE);
         }
 
         temp_data_list = new ArrayList<>();
@@ -198,8 +229,6 @@ public class SingleSelectionDialog extends AppCompatActivity {
 
         dialogAdapter.notifyDataSetChanged();
         recyclerView.setAdapter(dialogAdapter);
-
-
     }
 
     public String getCurrentField(String field) {
@@ -211,6 +240,7 @@ public class SingleSelectionDialog extends AppCompatActivity {
                 }
             }
         }
+
         return "";
     }
 
@@ -250,10 +280,21 @@ public class SingleSelectionDialog extends AppCompatActivity {
         SingleSelectionListener singleSelectionListener;
         int style;
 
+        /**
+         * If true, allows user to use the text in the search bar as a selected item by presssing
+         * return on their keyboard.
+         */
+        private boolean returnToAddSearch;
+
+        /**
+         * Text to be shown as guide to the user when pressing return to add the text in the search
+         * bar as a selected item.
+         */
+        private String returnToAddSearchText = "Press return to use your search";
+
         public Builder(Context ctx, String tag) {
             this.context = ctx;
             this.tag = tag;
-
         }
 
         public Builder setContent(ArrayList<String> contentProvide) {
@@ -293,6 +334,16 @@ public class SingleSelectionDialog extends AppCompatActivity {
 
         public Builder setSelectedField(String selectedField) {
             currentField = selectedField;
+            return this;
+        }
+
+        public Builder setReturnToAddSearch(boolean value) {
+            returnToAddSearch = value;
+            return this;
+        }
+
+        public Builder setReturnToAddSearchText(String value) {
+            returnToAddSearchText = value;
             return this;
         }
 
